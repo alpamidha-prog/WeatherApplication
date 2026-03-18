@@ -13,6 +13,82 @@ const weatherDesc = document.getElementById('weather-desc');
 const windSpeed = document.getElementById('wind-speed');
 const humidity = document.getElementById('humidity');
 
+const geoBtn = document.getElementById('geo-btn');
+const unitCheckbox = document.getElementById('unit-checkbox');
+const unitC = document.getElementById('unit-c');
+const unitF = document.getElementById('unit-f');
+
+const feelsLike = document.getElementById('feels-like');
+const uvIndex = document.getElementById('uv-index');
+const forecastContainer = document.getElementById('forecast-container');
+const forecastScroll = document.getElementById('forecast-scroll');
+
+let isFahrenheit = false;
+let globalWeatherData = null;
+let globalLocationName = '';
+let globalCountryName = '';
+
+function formatTemp(celsius) {
+    if (isFahrenheit) {
+        return Math.round((celsius * 9/5) + 32) + ' °F';
+    }
+    return Math.round(celsius) + ' °C';
+}
+
+function formatTempNoUnit(celsius) {
+    if (isFahrenheit) {
+        return Math.round((celsius * 9/5) + 32);
+    }
+    return Math.round(celsius);
+}
+
+unitCheckbox.addEventListener('change', (e) => {
+    isFahrenheit = e.target.checked;
+    if (isFahrenheit) {
+        unitC.classList.remove('active');
+        unitF.classList.add('active');
+    } else {
+        unitF.classList.remove('active');
+        unitC.classList.add('active');
+    }
+    if (globalWeatherData) {
+        updateUI(globalLocationName, globalCountryName, globalWeatherData.current, globalWeatherData.daily);
+    }
+});
+
+geoBtn.addEventListener('click', () => {
+    if ("geolocation" in navigator) {
+        geoBtn.style.opacity = '0.5';
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            weatherCard.classList.add('hidden');
+            forecastContainer.classList.add('hidden');
+            loading.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+            try {
+                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`);
+                if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
+                const weatherData = await weatherResponse.json();
+                updateUI("My Location", "GPS", weatherData.current, weatherData.daily);
+                input.value = "My Location";
+            } catch(e) {
+                errorMsg.textContent = e.message;
+                errorMsg.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+                geoBtn.style.opacity = '1';
+            }
+        }, (err) => {
+            geoBtn.style.opacity = '1';
+            errorMsg.textContent = "Location access denied or unavailable.";
+            errorMsg.classList.remove('hidden');
+        });
+    } else {
+        errorMsg.textContent = "Geolocation is not supported by your browser.";
+        errorMsg.classList.remove('hidden');
+    }
+});
+
 const locationsData = {
     "Japan": ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Sapporo"],
     "United States": ["New York", "Los Angeles", "Chicago", "Houston", "Miami"],
@@ -98,17 +174,16 @@ form.addEventListener('submit', async (e) => {
         const { latitude, longitude, name, country } = location;
 
         // 2. Weather Forecast API to get current weather
-        const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`);
+        const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`);
         
         if (!weatherResponse.ok) {
             throw new Error('Failed to fetch weather data');
         }
 
         const weatherData = await weatherResponse.json();
-        const current = weatherData.current;
 
         // Update UI
-        updateUI(name, country, current);
+        updateUI(name, country, weatherData.current, weatherData.daily);
 
     } catch (err) {
         errorMsg.textContent = err.message;
@@ -118,10 +193,24 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-function updateUI(name, country, currentData) {
+function updateUI(name, country, currentData, dailyData) {
+    globalWeatherData = { current: currentData, daily: dailyData };
+    globalLocationName = name;
+    globalCountryName = country;
+
     cityName.textContent = name;
     countryName.textContent = country || '';
-    tempValue.textContent = Math.round(currentData.temperature_2m);
+    tempValue.textContent = formatTempNoUnit(currentData.temperature_2m);
+    document.querySelector('.unit').textContent = isFahrenheit ? '°F' : '°C';
+    
+    feelsLike.textContent = formatTemp(currentData.apparent_temperature);
+    
+    if (dailyData && dailyData.uv_index_max && dailyData.uv_index_max.length > 0) {
+        uvIndex.textContent = dailyData.uv_index_max[0];
+    } else {
+        uvIndex.textContent = '--';
+    }
+
     windSpeed.textContent = `${currentData.wind_speed_10m} km/h`;
     humidity.textContent = `${currentData.relative_humidity_2m} %`;
 
@@ -131,6 +220,39 @@ function updateUI(name, country, currentData) {
 
     setWeatherBackground(currentData.weather_code);
     weatherCard.classList.remove('hidden');
+    
+    forecastScroll.innerHTML = '';
+    if (dailyData && dailyData.time) {
+        const days = dailyData.time; 
+        for (let i = 1; i < 6 && i < days.length; i++) {
+            const dateStr = days[i];
+            const dateObj = new Date(dateStr);
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            
+            const wCode = dailyData.weather_code[i];
+            const wInfo = getWeatherInfo(wCode);
+            
+            const maxT = formatTemp(dailyData.temperature_2m_max[i]);
+            const minT = formatTemp(dailyData.temperature_2m_min[i]);
+            
+            const item = document.createElement('div');
+            item.className = 'forecast-item';
+            item.innerHTML = `
+                <span class="date">${dayName}</span>
+                <span class="icon">${wInfo.icon}</span>
+                <div class="temps">
+                    <span class="max-t">${maxT}</span>
+                    <span class="min-t">${minT}</span>
+                </div>
+            `;
+            forecastScroll.appendChild(item);
+        }
+        if (days.length > 1) {
+            forecastContainer.classList.remove('hidden');
+        }
+    } else {
+        forecastContainer.classList.add('hidden');
+    }
 }
 
 function getWeatherInfo(code) {

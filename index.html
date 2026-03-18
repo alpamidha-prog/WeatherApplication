@@ -13,11 +13,22 @@
     <div class="app-container">
         <header class="header">
             <h1>Global Weather</h1>
+            <div class="unit-toggle">
+                <span class="unit-label active" id="unit-c">°C</span>
+                <label class="switch">
+                    <input type="checkbox" id="unit-checkbox">
+                    <span class="slider round"></span>
+                </label>
+                <span class="unit-label" id="unit-f">°F</span>
+            </div>
         </header>
 
         <main class="main-content">
             <div class="search-section">
                 <form id="search-form">
+                    <button type="button" id="geo-btn" title="Use My Location">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                    </button>
                     <input type="text" id="location-input" placeholder="Search country or city..." required autocomplete="off">
                     <button type="submit" id="search-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -60,6 +71,14 @@
                 
                 <div class="weather-details">
                     <div class="detail-item">
+                        <span class="detail-label">Feels Like</span>
+                        <span id="feels-like" class="detail-value">-- °C</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">UV Index</span>
+                        <span id="uv-index" class="detail-value">--</span>
+                    </div>
+                    <div class="detail-item">
                         <span class="detail-label">Wind</span>
                         <span id="wind-speed" class="detail-value">-- km/h</span>
                     </div>
@@ -67,6 +86,13 @@
                         <span class="detail-label">Humidity</span>
                         <span id="humidity" class="detail-value">-- %</span>
                     </div>
+                </div>
+            </div>
+
+            <div id="forecast-container" class="forecast-container hidden">
+                <h3>5-Day Forecast</h3>
+                <div class="forecast-scroll" id="forecast-scroll">
+                    <!-- Forecast items will go here -->
                 </div>
             </div>
         </main>
