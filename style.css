@@ -299,3 +299,108 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+
+/* Dynamic Weather Effects */
+#weather-backgrounds {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0; /* Ensures it sits behind the app-container (z-index 10) */
+    pointer-events: none;
+    overflow: hidden;
+}
+
+body {
+    transition: background 1s ease;
+}
+
+body.weather-clear {
+    background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
+    animation: none;
+}
+body.weather-clouds {
+    background: linear-gradient(to bottom, #8e9eab 0%, #eef2f3 100%);
+    animation: none;
+}
+body.weather-rain {
+    background: linear-gradient(to bottom, #2c3e50 0%, #3498db 100%);
+    animation: none;
+}
+body.weather-snow {
+    background: linear-gradient(to bottom, #757F9A 0%, #D7DDE8 100%);
+    animation: none;
+}
+body.weather-storm {
+    background: linear-gradient(to bottom, #141E30 0%, #243B55 100%);
+    animation: none;
+}
+
+/* Raindrop */
+.raindrop {
+    position: absolute;
+    width: 2px;
+    height: 25px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    animation: rainFall linear infinite;
+    top: -50px;
+}
+
+@keyframes rainFall {
+    0% { transform: translateY(0vh) translateX(0); opacity: 1; }
+    100% { transform: translateY(110vh) translateX(-10vh); opacity: 0; }
+}
+
+/* Snowflake */
+.snowflake {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: snowFall linear infinite, snowSway ease-in-out infinite alternate;
+    top: -20px;
+}
+
+@keyframes snowFall {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(110vh); }
+}
+
+@keyframes snowSway {
+    0% { transform: translateX(-15px); }
+    100% { transform: translateX(15px); }
+}
+
+/* Clouds */
+.cloud {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    animation: cloudDrift linear infinite;
+    filter: blur(8px);
+}
+
+@keyframes cloudDrift {
+    0% { transform: translateX(-20vw); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(120vw); opacity: 0; }
+}
+
+/* Storm Flash */
+body.weather-storm::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+    animation: lightning 6s infinite;
+}
+
+@keyframes lightning {
+    0%, 93%, 96%, 100% { opacity: 0; }
+    94%, 97% { opacity: 0.9; }
+}

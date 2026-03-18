@@ -3,6 +3,7 @@ const input = document.getElementById('location-input');
 const loading = document.getElementById('loading');
 const errorMsg = document.getElementById('error-message');
 const weatherCard = document.getElementById('weather-card');
+const weatherBg = document.getElementById('weather-backgrounds');
 
 const cityName = document.getElementById('city-name');
 const countryName = document.getElementById('country-name');
@@ -128,6 +129,7 @@ function updateUI(name, country, currentData) {
     weatherIcon.textContent = weatherInfo.icon;
     weatherDesc.textContent = weatherInfo.description;
 
+    setWeatherBackground(currentData.weather_code);
     weatherCard.classList.remove('hidden');
 }
 
@@ -152,5 +154,74 @@ function getWeatherInfo(code) {
             return { icon: '⛈️', description: 'Thunderstorm' };
         default:
             return { icon: '🌡️', description: 'Unknown' };
+    }
+}
+
+function setWeatherBackground(code) {
+    weatherBg.innerHTML = '';
+    document.body.className = '';
+    
+    let type = 'clear';
+    switch (true) {
+        case code === 0:
+            type = 'clear';
+            break;
+        case [1, 2, 3, 45, 48].includes(code):
+            type = 'clouds';
+            break;
+        case [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code):
+            type = 'rain';
+            break;
+        case [71, 73, 75, 77, 85, 86].includes(code):
+            type = 'snow';
+            break;
+        case [95, 96, 99].includes(code):
+            type = 'storm';
+            break;
+    }
+
+    document.body.classList.add(`weather-${type}`);
+    
+    if (type === 'rain') {
+        for(let i=0; i<60; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = `${Math.random() * 100}vw`;
+            drop.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+            drop.style.animationDelay = `${Math.random() * 2}s`;
+            weatherBg.appendChild(drop);
+        }
+    } else if (type === 'snow') {
+        for(let i=0; i<40; i++) {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            flake.style.left = `${Math.random() * 100}vw`;
+            flake.style.width = `${Math.random() * 6 + 4}px`;
+            flake.style.height = flake.style.width;
+            flake.style.opacity = Math.random() * 0.5 + 0.3;
+            flake.style.animationDuration = `${Math.random() * 3 + 4}s`;
+            flake.style.animationDelay = `${Math.random() * 2}s`;
+            weatherBg.appendChild(flake);
+        }
+    } else if (type === 'clouds') {
+        for(let i=0; i<6; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            cloud.style.top = `${Math.random() * 40}vh`;
+            cloud.style.width = `${Math.random() * 100 + 100}px`;
+            cloud.style.height = `${Math.random() * 40 + 40}px`;
+            cloud.style.animationDuration = `${Math.random() * 20 + 30}s`;
+            cloud.style.animationDelay = `${Math.random() * -30}s`;
+            weatherBg.appendChild(cloud);
+        }
+    } else if (type === 'storm') {
+        for(let i=0; i<80; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = `${Math.random() * 100}vw`;
+            drop.style.animationDuration = `${Math.random() * 0.4 + 0.4}s`;
+            drop.style.animationDelay = `${Math.random() * 2}s`;
+            weatherBg.appendChild(drop);
+        }
     }
 }
