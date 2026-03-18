@@ -1,3 +1,4 @@
+<img width="862" height="717" alt="Screenshot 2026-03-18 113503" src="https://github.com/user-attachments/assets/f8c9ed91-bde3-429c-a551-999ad6bbead2" />
 # 🌍 Global Weather App
 
 A beautiful, responsive, and dynamic web application for checking real-time global weather conditions. Built purely with HTML, Vanilla JavaScript, and custom CSS using a modern glassmorphism aesthetic. No external UI frameworks or build pipelines are required!
